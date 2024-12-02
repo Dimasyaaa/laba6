@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -248,11 +248,12 @@ public:
 
     //УДАЛЕНИЕ
     void removeStudent(int studentID) {
-        auto it = remove_if(students.begin(), students.end(), [&](const Student& s) {
+        auto it = find_if(students.begin(), students.end(), [&](const Student& s) {
             return s.getID() == studentID;
             });
+
         if (it != students.end()) {
-            students.erase(it, students.end());
+            students.erase(it);
             cout << "Студент с ID " << studentID << " успешно удален.\n";
         }
         else {
@@ -261,11 +262,12 @@ public:
     }
 
     void removeProfessor(int professorID) {
-        auto it = remove_if(professors.begin(), professors.end(), [&](const Professor& professor) {
+        auto it = find_if(professors.begin(), professors.end(), [&](const Professor& professor) {
             return professor.getID() == professorID;
             });
+
         if (it != professors.end()) {
-            professors.erase(it, professors.end());
+            professors.erase(it);
             cout << "Профессор с ID " << professorID << " успешно удален.\n";
         }
         else {
@@ -274,11 +276,12 @@ public:
     }
 
     void removeCourse(int courseID) {
-        auto it = remove_if(courses.begin(), courses.end(), [&](const Course& c) {
+        auto it = find_if(courses.begin(), courses.end(), [&](const Course& c) {
             return c.courseID == courseID;
             });
+
         if (it != courses.end()) {
-            courses.erase(it, courses.end());
+            courses.erase(it);
             cout << "Курс с ID " << courseID << " успешно удален.\n";
         }
         else {
@@ -289,45 +292,64 @@ public:
     void removeSchedule(const string& day) {
         schedule.removeClassesByDay(day);
     }
-
+    //РЕДАКТИРОВАНИЕ
     void editStudent(Student& student) {
-        for (auto man : students) {
-            if (man.getID() == student.getID()) {
-                man.editStudent();
-                man.display();
-                removeStudent(student.getID());
-                getStudent(man);
-                return;
-            }
+        auto it = std::find_if(students.begin(), students.end(), [&](const Student& man) {
+            return man.getID() == student.getID();
+            });
+
+        if (it != students.end()) {
+            it->editStudent(); // редактируем найденного студента
+            it->display(); // показываем информацию о студенте
+            //removeStudent(student.getID()); 
+            cout << "Студент успешно редактирован.\n";
+            cout << "Теперь перейдите в удаление и введите новый id(т.к создалась копия) .\n";
+            getStudent(*it); // добавляем обновлённую запись
         }
-        cerr << "Студент с id " << student.getID() << " не найден!" << endl;
+        else {
+            cerr << "Студент с id " << student.getID() << " не найден!" << endl;
+        }
     }
 
     void editProfessor(Professor& professor) {
-        for (auto man : professors) {
-            if (man.getID() == professor.getID()) {
-                man.editProfessor();
-                removeProfessor(professor.getID());
-                getProfessor(man);
-            }
+        auto it = find_if(professors.begin(), professors.end(), [&](const Professor& man) {
+            return man.getID() == professor.getID();
+            });
+
+        if (it != professors.end()) {
+            it->editProfessor(); // Аналогично с студентом
+            //removeProfessor(professor.getID()); 
+            cout << "Профессор успешно редактирован.\n";
+            cout << "Теперь перейдите в удаление и введите новый id(т.к создалась копия) .\n";
+            getProfessor(*it); 
+        }
+        else {
+            cerr << "Профессор с id " << professor.getID() << " не найден!" << endl;
         }
     }
 
     void editCourse(Course& course) {
-        for (auto subject : courses) {
-            if (subject.courseID == course.courseID) {
-                subject.editCourse();
-                removeCourse(course.courseID);
-                getCourse(subject);
-            }
+        auto it = find_if(courses.begin(), courses.end(), [&](const Course& subject) {
+            return subject.courseID == course.courseID;
+            });
+
+        if (it != courses.end()) {
+            it->editCourse(); // Аналогично с студентом
+            //removeCourse(course.courseID); 
+            cout << "Курс успешно редактирован.\n";
+            cout << "Теперь перейдите в удаление и введите новый id(т.к создалась копия) .\n";
+            getCourse(*it); 
+        }
+        else {
+            cerr << "Курс с id " << course.courseID << " не найден!" << endl;
         }
     }
 
     void editSchedule() {
-        schedule.editClass();
+        schedule.editClass(); 
     }
 
-    //Поиск студента
+    //ПОИСК 
     Student findStudentByID(int ID) const {
         auto it = find_if(students.begin(), students.end(), [ID](const Student& student) {
             return student.getID() == ID;
@@ -341,7 +363,7 @@ public:
         }
     }
 
-    //Поиск преподавателя
+
     Professor findProfessorByID(int ID) const {
         auto it = find_if(professors.begin(), professors.end(), [ID](const Professor& professor) {
             return professor.getID() == ID;
@@ -355,7 +377,6 @@ public:
         }
     }
 
-    //Поиск преподавателя
     Course findCourseByID(int ID) const {
         auto it = find_if(courses.begin(), courses.end(), [ID](const Course& course) {
             return course.courseID == ID;
@@ -381,7 +402,7 @@ public:
     void displayAllProfessors() const {
         cout << "Список преподавателей:\n";
         for (const auto& professor : professors) {
-            cout << "ID: " << professor.getID() << " | Имя: " << professor.getName() << endl;
+            cout << "ID: " << professor.getID() << " | ФИО: " << professor.getName() << endl;
         }
     }
 
@@ -400,10 +421,9 @@ public:
 int main() {
     //SetConsoleCP(CP_UTF8);
     //SetConsoleOutputCP(CP_UTF8);
-    setlocale(LC_ALL,"Rus");
+    setlocale(LC_ALL, "Rus");
 
     University university;
-
     int choice;
 
     do {
@@ -416,7 +436,6 @@ int main() {
         cout << "5. СПРАВКА!!!\n";
         cout << "6. Выйти\n";
         cout << "Выберите пункт меню: ";
-
         cin >> choice;
         cin.ignore();
 
@@ -453,8 +472,8 @@ int main() {
                     cin >> id;
                     cin.ignore();
 
-                    Student student = university.findStudentByID(id);// Предполагается, что есть метод для поиска студента по ID (теперь есть)
-                    if (student.getID() != -1) { // Проверка на существование студента (так ничего не проверится)
+                    Student student = university.findStudentByID(id);
+                    if (student.getID() != -1) { 
                         university.editStudent(student);
                     }
                     else {
@@ -660,8 +679,5 @@ int main() {
         }
 
     } while (choice != 6);
-
     return 0;
 }
-
-
